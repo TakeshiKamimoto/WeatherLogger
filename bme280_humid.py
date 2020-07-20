@@ -8,8 +8,8 @@ i2c_address = 0x76
 
 bus = SMBus(bus_number)
 
-digT = []
-digP = []
+#digT = []
+#digP = []
 digH = []
 
 t_fine = 0.0
@@ -27,18 +27,18 @@ def get_calib_param():
     for i in range (0xE1,0xE1+7):
         calib.append(bus.read_byte_data(i2c_address,i))
 
-    digT.append((calib[1] << 8) | calib[0])
-    digT.append((calib[3] << 8) | calib[2])
-    digT.append((calib[5] << 8) | calib[4])
-    digP.append((calib[7] << 8) | calib[6])
-    digP.append((calib[9] << 8) | calib[8])
-    digP.append((calib[11]<< 8) | calib[10])
-    digP.append((calib[13]<< 8) | calib[12])
-    digP.append((calib[15]<< 8) | calib[14])
-    digP.append((calib[17]<< 8) | calib[16])
-    digP.append((calib[19]<< 8) | calib[18])
-    digP.append((calib[21]<< 8) | calib[20])
-    digP.append((calib[23]<< 8) | calib[22])
+    #digT.append((calib[1] << 8) | calib[0])
+    #digT.append((calib[3] << 8) | calib[2])
+    #digT.append((calib[5] << 8) | calib[4])
+    #digP.append((calib[7] << 8) | calib[6])
+    #digP.append((calib[9] << 8) | calib[8])
+    #digP.append((calib[11]<< 8) | calib[10])
+    #digP.append((calib[13]<< 8) | calib[12])
+    #digP.append((calib[15]<< 8) | calib[14])
+    #digP.append((calib[17]<< 8) | calib[16])
+    #digP.append((calib[19]<< 8) | calib[18])
+    #digP.append((calib[21]<< 8) | calib[20])
+    #digP.append((calib[23]<< 8) | calib[22])
     digH.append( calib[24] )
     digH.append((calib[26]<< 8) | calib[25])
     digH.append( calib[27] )
@@ -46,13 +46,13 @@ def get_calib_param():
     digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
     digH.append( calib[31] )
     
-    for i in range(1,2):
-        if digT[i] & 0x8000:
-            digT[i] = (-digT[i] ^ 0xFFFF) + 1
+    #for i in range(1,2):
+    #    if digT[i] & 0x8000:
+    #        digT[i] = (-digT[i] ^ 0xFFFF) + 1
 
-    for i in range(1,8):
-        if digP[i] & 0x8000:
-            digP[i] = (-digP[i] ^ 0xFFFF) + 1
+    #for i in range(1,8):
+    #    if digP[i] & 0x8000:
+    #        digP[i] = (-digP[i] ^ 0xFFFF) + 1
 
     for i in range(0,6):
         if digH[i] & 0x8000:
@@ -66,45 +66,10 @@ def readData():
     temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
     hum_raw  = (data[6] << 8)  |  data[7]
     
-    t = compensate_T(temp_raw)
-    p = compensate_P(pres_raw)
+    #t = compensate_T(temp_raw)
+    #p = compensate_P(pres_raw)
     h = compensate_H(hum_raw)
     return h
-
-
-def compensate_P(adc_P):
-    global  t_fine
-    pressure = 0.0
-    
-    v1 = (t_fine / 2.0) - 64000.0
-    v2 = (((v1 / 4.0) * (v1 / 4.0)) / 2048) * digP[5]
-    v2 = v2 + ((v1 * digP[4]) * 2.0)
-    v2 = (v2 / 4.0) + (digP[3] * 65536.0)
-    v1 = (((digP[2] * (((v1 / 4.0) * (v1 / 4.0)) / 8192)) / 8)  + ((digP[1] * v1) / 2.0)) / 262144
-    v1 = ((32768 + v1) * digP[0]) / 32768
-    
-    if v1 == 0:
-        return 0
-    pressure = ((1048576 - adc_P) - (v2 / 4096)) * 3125
-    if pressure < 0x80000000:
-        pressure = (pressure * 2.0) / v1
-    else:
-        pressure = (pressure / v1) * 2
-    v1 = (digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
-    v2 = ((pressure / 4.0) * digP[7]) / 8192.0
-    pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
-
-    print ('pressure: %7.1f' %(pressure/100), 'hPa')
-    return "%7.1f" % (pressure/100)
-
-def compensate_T(adc_T):
-    global t_fine
-    v1 = (adc_T / 16384.0 - digT[0] / 1024.0) * digT[1]
-    v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
-    t_fine = v1 + v2
-    temperature = t_fine / 5120.0
-    print ('Temp.: %-6.2f' %temperature,'?') # % (temperature)
-    return "%.2f" % (temperature)
 
 def compensate_H(adc_H):
     global t_fine
