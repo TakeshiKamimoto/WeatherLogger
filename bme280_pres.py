@@ -8,9 +8,9 @@ i2c_address = 0x76
 
 bus = SMBus(bus_number)
 
-digT = []
+#digT = []
 digP = []
-digH = []
+#digH = []
 
 t_fine = 0.0
 
@@ -27,9 +27,9 @@ def get_calib_param():
     for i in range (0xE1,0xE1+7):
         calib.append(bus.read_byte_data(i2c_address,i))
 
-    digT.append((calib[1] << 8) | calib[0])
-    digT.append((calib[3] << 8) | calib[2])
-    digT.append((calib[5] << 8) | calib[4])
+    #digT.append((calib[1] << 8) | calib[0])
+    #digT.append((calib[3] << 8) | calib[2])
+    #digT.append((calib[5] << 8) | calib[4])
     digP.append((calib[7] << 8) | calib[6])
     digP.append((calib[9] << 8) | calib[8])
     digP.append((calib[11]<< 8) | calib[10])
@@ -39,36 +39,36 @@ def get_calib_param():
     digP.append((calib[19]<< 8) | calib[18])
     digP.append((calib[21]<< 8) | calib[20])
     digP.append((calib[23]<< 8) | calib[22])
-    digH.append( calib[24] )
-    digH.append((calib[26]<< 8) | calib[25])
-    digH.append( calib[27] )
-    digH.append((calib[28]<< 4) | (0x0F & calib[29]))
-    digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
-    digH.append( calib[31] )
+    #digH.append( calib[24] )
+    #digH.append((calib[26]<< 8) | calib[25])
+    #digH.append( calib[27] )
+    #digH.append((calib[28]<< 4) | (0x0F & calib[29]))
+    #digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
+    #digH.append( calib[31] )
     
-    for i in range(1,2):
-        if digT[i] & 0x8000:
-            digT[i] = (-digT[i] ^ 0xFFFF) + 1
+    #for i in range(1,2):
+    #    if digT[i] & 0x8000:
+    #        digT[i] = (-digT[i] ^ 0xFFFF) + 1
 
     for i in range(1,8):
         if digP[i] & 0x8000:
             digP[i] = (-digP[i] ^ 0xFFFF) + 1
 
-    for i in range(0,6):
-        if digH[i] & 0x8000:
-            digH[i] = (-digH[i] ^ 0xFFFF) + 1  
+    #for i in range(0,6):
+    #    if digH[i] & 0x8000:
+    #        digH[i] = (-digH[i] ^ 0xFFFF) + 1  
 
 def readData():
     data = []
     for i in range (0xF7, 0xF7+8):
         data.append(bus.read_byte_data(i2c_address,i))
     pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
-    temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-    hum_raw  = (data[6] << 8)  |  data[7]
+    #temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+    #hum_raw  = (data[6] << 8)  |  data[7]
     
-    t = compensate_T(temp_raw)
+    #t = compensate_T(temp_raw)
     p = compensate_P(pres_raw)
-    h = compensate_H(hum_raw)
+    #h = compensate_H(hum_raw)
     return p
 
 
@@ -97,29 +97,6 @@ def compensate_P(adc_P):
     print ('pressure: %7.1f' %(pressure/100), 'hPa')
     return "%7.1f" % (pressure/100)
 
-def compensate_T(adc_T):
-    global t_fine
-    v1 = (adc_T / 16384.0 - digT[0] / 1024.0) * digT[1]
-    v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
-    t_fine = v1 + v2
-    temperature = t_fine / 5120.0
-    print ('Temp.: %-6.2f' %temperature,'?') # % (temperature)
-    return "%.2f" % (temperature)
-
-def compensate_H(adc_H):
-    global t_fine
-    var_h = t_fine - 76800.0
-    if var_h != 0:
-        var_h = (adc_H - (digH[3] * 64.0 + digH[4]/16384.0 * var_h)) * (digH[1] / 65536.0 * (1.0 + digH[5] / 67108864.0 * var_h * (1.0 + digH[2] / 67108864.0 * var_h)))
-    else:
-        return 0
-    var_h = var_h * (1.0 - digH[0] * var_h / 524288.0)
-    if var_h > 100.0:
-        var_h = 100.0
-    elif var_h < 0.0:
-        var_h = 0.0
-    print ('Humidity: %6.2f' %var_h, '%') # % (var_h)
-    return "%.2f" % (var_h)
 
 def setup():
     osrs_t = 1          #Temperature oversampling x 1
