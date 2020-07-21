@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 def weaternews()
-    URL2 = 'http://web.sugiyama-u.ac.jp/~yamane/honkoma/Vantage_Pro_Plus.htm'
+    URL = 'https://weathernews.jp/onebox/tenki/tokyo/13108/'
 
     r = requests.get(URL)
     html = r.text.encode(r.encoding)
