@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-def weaternews()
+def weaternews():
     URL = 'https://weathernews.jp/onebox/tenki/tokyo/13108/'
 
     r = requests.get(URL)
@@ -17,3 +17,5 @@ def weaternews()
     
     return temp_m, humd_m, pres_m
     
+if __name__ == '__main__':
+	weathernews()
