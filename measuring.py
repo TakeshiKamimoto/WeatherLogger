@@ -1,5 +1,5 @@
 #coding: utf-8
-
+#このスクリプトはcronで10分周期で実行させる。
 import bme280_sample
 import weathernewsdata
 import webpressdata
@@ -19,16 +19,16 @@ filename = 'todaydata'
 #date = now.strftime('%Y/%m/%d %H:%M')
 time = now.strftime('%H:%M')
 
-sensdata = bme280_sample.readData()
+sensdata = bme280_sample.readData() #センサー計測データ読み込み
 bme_t = sensdata[0]
 bme_p = sensdata[1]
 bme_h = sensdata[2]
 
-webdata = weathernewsdata.readData()
+webdata = weathernewsdata.readData() #気象ウェブページからスクレイピング
 temp_m = webdata[0]
 humd_m = webdata[1]
 
-pres_m = webpressdata.readData()
+pres_m = webpressdata.readData() #気象ウェブページからスクレイピング
 
 if not os.path.exists('/home/pi/bme280/data'):
     os.makedirs('/home/pi/bme280/data')
@@ -43,6 +43,7 @@ f = open('/home/pi/bme280/data/'+filename+'_humd.csv','a')
 f.write("'"+time+"',"+bme_h+","+humd_m+"\n")
 f.close()
 
+#csvファイルの先頭行を削除する
 df = pd.read_csv('/home/pi/bme280/data/'+filename+'_temp.csv', header=None)
 df.drop(0, inplace=True)
 df.to_csv('/home/pi/bme280/data/'+filename+'_temp.csv', header=False, index=False)
