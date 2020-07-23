@@ -1,3 +1,4 @@
+# このスクリプトファイルはwebサーバーのディレクトリ　/var/www/html に置く
 <?php
 $today  = 'todaydata';
 $csv_dir  = '/home/pi/bme280/data/';
